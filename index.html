@@ -10,6 +10,9 @@
     </head>
 
     <body style="margin: 0; overflow: hidden;">
+        <!-- Add the button -->
+        <button id="toggle-cutting">Enable Cutting</button>
+
         <a-scene
             vr-mode-ui="enabled: false;"
             loading-screen="enabled: false;"
@@ -48,10 +51,20 @@
             <a-entity camera></a-entity>
         </a-scene>
         <script>
+            let cuttingEnabled = false;
+
+            document.getElementById('toggle-cutting').addEventListener('click', () => {
+                cuttingEnabled = !cuttingEnabled;
+                document.getElementById('toggle-cutting').innerText = cuttingEnabled ? 'Disable Cutting' : 'Enable Cutting';
+            });
+
             const object = document.getElementById('bowser-model');
             const camera = document.querySelector('a-entity[camera]');
 
-            object.addEventListener('click', () => {
+            object.addEventListener('touchmove', (event) => {
+                if (!cuttingEnabled) return;
+
+                const touch = event.touches[0];
                 const cameraPosition = camera.object3D.position;
                 const cameraDirection = camera.object3D.getWorldDirection(new THREE.Vector3());
 
