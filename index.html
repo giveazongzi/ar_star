@@ -3,63 +3,16 @@
 <head>
     <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://rawcdn.githack.com/manthrax/THREE-CSGMesh/master/CSGMesh.js"></script>
 </head>
 <body style="margin: 0; overflow: hidden;">
-    <a-scene vr-mode-ui="enabled: false;" arjs="sourceType: webcam;">
-        <!-- 3D assets -->
+    <a-scene vr-mode-ui="enabled: false;" arjs="trackingMethod: best; sourceType: webcam;">
         <a-assets>
             <a-asset-item id="3d-model" src="assets/asset.glb"></a-asset-item>
         </a-assets>
-
-        <!-- AR marker to trigger the 3D model -->
         <a-marker preset="custom" type="pattern" url="assets/marker.patt">
-            <!-- Entity to display the 3D model -->
-            <a-entity id="model" gltf-model="#3d-model" scale="0.5 0.5 0.5"></a-entity>
+            <a-entity gltf-model="#3d-model" scale="0.5 0.5 0.5"></a-entity>
         </a-marker>
-
-        <!-- Camera entity -->
         <a-entity camera></a-entity>
     </a-scene>
-
-    <script>
-        // Access the loaded 3D model
-        AFRAME.registerComponent('model-cutter', {
-            init: function () {
-                const modelEl = document.querySelector('#model');
-                
-                modelEl.addEventListener('model-loaded', (evt) => {
-                    const model = evt.detail.model; // Get the Three.js mesh from the model
-                    
-                    // Create a cutting plane
-                    const cuttingPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
-                    
-                    // Add interaction logic (e.g., mouse or gesture) to move the cutting plane
-                    document.addEventListener('mousemove', function (event) {
-                        // Update cutting plane position based on mouse movement (for demonstration)
-                        cuttingPlane.constant = event.clientY / window.innerHeight * 2 - 1;
-                        
-                        // Perform boolean operation to "cut" the model
-                        const cutterGeometry = new THREE.BoxGeometry(1, 1, 1);  // Define a cutting box
-                        const cutterMesh = new THREE.Mesh(cutterGeometry);
-                        
-                        const modelMesh = model.children[0];  // Access the 3D model's mesh
-
-                        // Use CSG for the boolean operation
-                        const modelCSG = CSG.fromMesh(modelMesh);
-                        const cutterCSG = CSG.fromMesh(cutterMesh);
-                        const cutModelCSG = modelCSG.subtract(cutterCSG);
-                        
-                        // Replace the original model mesh with the cut model
-                        modelMesh.geometry = CSG.toMesh(cutModelCSG, modelMesh.matrix).geometry;
-                    });
-                });
-            }
-        });
-
-        // Attach the component to the model entity
-        document.querySelector('#model').setAttribute('model-cutter', '');
-    </script>
 </body>
 </html>
