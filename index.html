@@ -6,14 +6,9 @@
         <script src="https://raw.githack.com/donmccurdy/aframe-extras/master/dist/aframe-extras.loaders.min.js"></script>
         <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-detector.js"></script>
         <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-handler.js"></script>
-        <script src="https://unpkg.com/three@0.150.1/build/three.min.js"></script>
-        <script src="https://unpkg.com/three@0.150.1/examples/js/loaders/DRACOLoader.js"></script>
     </head>
 
     <body style="margin: 0; overflow: hidden;">
-        <!-- Add the button -->
-        <button id="toggle-cutting">Enable Cutting</button>
-
         <a-scene
             vr-mode-ui="enabled: false;"
             loading-screen="enabled: false;"
@@ -38,6 +33,7 @@
                 raycaster="objects: .clickable"
                 emitevents="true"
                 cursor="fuse: false; rayOrigin: mouse;"
+                id="markerA"
             >
                 <a-entity
                     id="bowser-model"
@@ -51,58 +47,5 @@
 
             <a-entity camera></a-entity>
         </a-scene>
-        <script>
-            let cuttingEnabled = false;
-
-            document.getElementById('toggle-cutting').addEventListener('click', () => {
-                cuttingEnabled = !cuttingEnabled;
-                document.getElementById('toggle-cutting').innerText = cuttingEnabled ? 'Disable Cutting' : 'Enable Cutting';
-            });
-
-            const object = document.getElementById('bowser-model');
-            const camera = document.querySelector('a-entity[camera]');
-
-            object.addEventListener('touchmove', (event) => {
-                if (!cuttingEnabled) return;
-
-                const touch = event.touches[0];
-                const cameraPosition = camera.object3D.position;
-                const cameraDirection = camera.object3D.getWorldDirection(new THREE.Vector3());
-
-                sliceObjects([object], cameraDirection, cameraPosition);
-            });
-
-            function sliceObjects(objects, planeNormal, planePoint) {
-                objects.forEach(object => {
-                    const geometry = object.getObject3D('mesh').geometry;
-                    const vertices = geometry.attributes.position.array;
-                    const numVertices = vertices.length / 3;
-
-                    for (let i = 0; i < numVertices - 2; i += 3) {
-                        const v1 = new THREE.Vector3(vertices[i], vertices[i + 1], vertices[i + 2]);
-                        const v2 = new THREE.Vector3(vertices[i + 3], vertices[i + 4], vertices[i + 5]);
-                        const v3 = new THREE.Vector3(vertices[i + 6], vertices[i + 7], vertices[i + 8]);
-
-                        const side1 = v1.dot(planeNormal) - planePoint.dot(planeNormal);
-                        const side2 = v2.dot(planeNormal) - planePoint.dot(planeNormal);
-                        const side3 = v3.dot(planeNormal) - planePoint.dot(planeNormal);
-
-                        if (side1 * side2 < 0) {
-                            const intersection1 = v1.clone().add(v2.clone().sub(v1).multiplyScalar(-side1 / (side2 - side1)));
-                        }
-
-                        if (side2 * side3 < 0) {
-                            const intersection2 = v2.clone().add(v3.clone().sub(v2).multiplyScalar(-side2 / (side3 - side2)));
-                        }
-
-                        if (side3 * side1 < 0) {
-                            const intersection3 = v3.clone().add(v1.clone().sub(v3).multiplyScalar(-side3 / (side1 - side3)));
-                        }
-                    }
-
-                    geometry.attributes.position.needsUpdate = true;
-                });
-            }
-        </script>
     </body>
 </html>
