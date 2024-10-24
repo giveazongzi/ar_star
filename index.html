@@ -47,17 +47,13 @@
             <a-entity camera></a-entity>
         </a-scene>
         <script>
-            // 獲取物件和相機
             const object = document.getElementById('bowser-model');
             const camera = document.querySelector('a-entity[camera]');
 
-            // 新增事件監聽器以處理觸摸事件
             object.addEventListener('click', () => {
-                // 獲取相機的位置和方向
                 const cameraPosition = camera.object3D.position;
                 const cameraDirection = camera.object3D.getWorldDirection(new THREE.Vector3());
 
-                // 使用相機的位置和方向作為切割平面
                 sliceObjects([object], cameraDirection, cameraPosition);
             });
 
@@ -67,33 +63,25 @@
                     const vertices = geometry.attributes.position.array;
                     const numVertices = vertices.length / 3;
 
-                    // 複製頂點並建立新的面
                     for (let i = 0; i < numVertices - 2; i += 3) {
                         const v1 = new THREE.Vector3(vertices[i], vertices[i + 1], vertices[i + 2]);
                         const v2 = new THREE.Vector3(vertices[i + 3], vertices[i + 4], vertices[i + 5]);
                         const v3 = new THREE.Vector3(vertices[i + 6], vertices[i + 7], vertices[i + 8]);
 
-                        // 檢查頂點是否在平面的兩側
                         const side1 = v1.dot(planeNormal) - planePoint.dot(planeNormal);
                         const side2 = v2.dot(planeNormal) - planePoint.dot(planeNormal);
                         const side3 = v3.dot(planeNormal) - planePoint.dot(planeNormal);
 
                         if (side1 * side2 < 0) {
-                            // 計算交點
                             const intersection1 = v1.clone().add(v2.clone().sub(v1).multiplyScalar(-side1 / (side2 - side1)));
-                            // 新增頂點和面
                         }
 
                         if (side2 * side3 < 0) {
-                            // 計算交點
                             const intersection2 = v2.clone().add(v3.clone().sub(v2).multiplyScalar(-side2 / (side3 - side2)));
-                            // 新增頂點和面
                         }
 
                         if (side3 * side1 < 0) {
-                            // 計算交點
                             const intersection3 = v3.clone().add(v1.clone().sub(v3).multiplyScalar(-side3 / (side1 - side3)));
-                            // 新增頂點和面
                         }
                     }
 
