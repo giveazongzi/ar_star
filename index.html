@@ -79,21 +79,47 @@
                 }
             });
 
+            document.querySelector('#cuttable-model').addEventListener('model-loaded', function() {
+                console.log("Model loaded successfully.");
+
+                const modelEntity = document.querySelector('#cuttable-model').object3D;
+                
+                modelEntity.traverse(function (child) {
+                    if (child.isMesh) {
+                        child.geometry.computeBoundingBox();
+                        console.log('Geometry loaded:', child.geometry);
+                    }
+                });
+            });
+
             document.querySelector('#cuttable-model').addEventListener('click', function() {
                 if (!isCutModeEnabled) return;
 
-                const modelEntity = document.querySelector('#cuttable-model').object3D.children[0];
+                const modelEntity = document.querySelector('#cuttable-model').object3D;
+
+                let targetMesh = null;
+                modelEntity.traverse(function (child) {
+                    if (child.isMesh) {
+                        targetMesh = child; // 找到Mesh
+                    }
+                });
+
+                if (!targetMesh) {
+                    console.error("找不到可切割的模型。");
+                    return;
+                }
+
                 const cuttingBoxGeometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
                 const cuttingBoxMesh = new THREE.Mesh(cuttingBoxGeometry);
 
-                const modelBSP = new ThreeBSP(modelEntity);
+                const modelBSP = new ThreeBSP(targetMesh);
                 const cuttingBoxBSP = new ThreeBSP(cuttingBoxMesh);
 
                 const resultBSP = modelBSP.subtract(cuttingBoxBSP);
                 const resultMesh = resultBSP.toMesh();
                 resultMesh.geometry.computeVertexNormals();
 
-                modelEntity.geometry = resultMesh.geometry;
+                targetMesh.geometry = resultMesh.geometry;
 
                 console.log("Object cut successfully!");
             });
