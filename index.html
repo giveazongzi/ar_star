@@ -4,12 +4,28 @@
         <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
         <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
         <script src="https://raw.githack.com/donmccurdy/aframe-extras/master/dist/aframe-extras.loaders.min.js"></script>
-        <script src="https://raw.githubusercontent.com/temportalflux/ThreeCSG/master/ThreeBSP.js"></script> <!-- 引入切割用的ThreeBSP庫 -->
+        <script src="https://raw.githubusercontent.com/temportalflux/ThreeCSG/master/ThreeBSP.js"></script>
         <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-detector.js"></script>
         <script src="https://raw.githack.com/AR-js-org/studio-backend/master/src/modules/marker/tools/gesture-handler.js"></script>
+        <style>
+            #cutButton {
+                position: absolute;
+                top: 20px;
+                left: 20px;
+                padding: 10px;
+                background-color: #28a745;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                font-size: 16px;
+                cursor: pointer;
+            }
+        </style>
     </head>
 
     <body style="margin: 0; overflow: hidden;">
+        <button id="cutButton">啟動切割模式</button>
+
         <a-scene
             vr-mode-ui="enabled: false;"
             loading-screen="enabled: false;"
@@ -50,19 +66,33 @@
         </a-scene>
 
         <script>
-            document.querySelector('#cuttable-model').addEventListener('click', function() {
-                const modelEntity = document.querySelector('#cuttable-model').object3D.children[0]; 
+            let isCutModeEnabled = false;
 
-                
-                const cuttingBoxGeometry = new THREE.BoxGeometry(0.1, 0.1, 0.1); 
+            document.querySelector('#cutButton').addEventListener('click', function() {
+                isCutModeEnabled = !isCutModeEnabled;
+                if (isCutModeEnabled) {
+                    this.innerHTML = '切割模式已啟動';
+                    this.style.backgroundColor = '#dc3545';
+                } else {
+                    this.innerHTML = '啟動切割模式';
+                    this.style.backgroundColor = '#28a745';
+                }
+            });
+
+            document.querySelector('#cuttable-model').addEventListener('click', function() {
+                if (!isCutModeEnabled) return;
+
+                const modelEntity = document.querySelector('#cuttable-model').object3D.children[0];
+                const cuttingBoxGeometry = new THREE.BoxGeometry(0.1, 0.1, 0.1);
                 const cuttingBoxMesh = new THREE.Mesh(cuttingBoxGeometry);
+
                 const modelBSP = new ThreeBSP(modelEntity);
                 const cuttingBoxBSP = new ThreeBSP(cuttingBoxMesh);
 
                 const resultBSP = modelBSP.subtract(cuttingBoxBSP);
-
                 const resultMesh = resultBSP.toMesh();
-                resultMesh.geometry.computeVertexNormals(); 
+                resultMesh.geometry.computeVertexNormals();
+
                 modelEntity.geometry = resultMesh.geometry;
 
                 console.log("Object cut successfully!");
